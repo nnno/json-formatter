@@ -1,3 +1,5 @@
+import { getNestedFieldClass } from './jsonStringParser';
+
 /**
  * JSON値の型定義
  */
@@ -25,9 +27,14 @@ interface JsonNode {
  * JSONをHTMLにフォーマットする
  * @param json JSONオブジェクト
  * @param maxInitialDepth 初期表示時の最大展開階層 (デフォルト: 1)
+ * @param parseFields 文字列フィールド内のJSONをパースする対象フィールド
  * @returns HTML文字列
  */
-export const formatJsonToHtml = (json: JsonValue, maxInitialDepth: number = 1): string => {
+export const formatJsonToHtml = (
+  json: JsonValue,
+  maxInitialDepth: number = 1,
+  parseFields: string = ''
+): string => {
   try {
     // 初期ノードを生成
     const rootNode: JsonNode = {
@@ -39,7 +46,7 @@ export const formatJsonToHtml = (json: JsonValue, maxInitialDepth: number = 1): 
     };
 
     // HTMLに変換
-    return `<div class="json-tree">${nodeToHtml(rootNode, 0, maxInitialDepth)}</div>`;
+    return `<div class="json-tree">${nodeToHtml(rootNode, 0, maxInitialDepth, parseFields)}</div>`;
   } catch (error) {
     console.error('JSONフォーマットエラー:', error);
     return String(error);
@@ -75,14 +82,25 @@ const isCollapsible = (value: JsonValue): boolean => {
  * @param node ノード
  * @param currentDepth 現在の階層
  * @param maxInitialDepth 初期表示時の最大展開階層
+ * @param parseFields 文字列フィールド内のJSONをパースする対象フィールド
  * @returns HTML文字列
  */
-const nodeToHtml = (node: JsonNode, currentDepth: number = 0, maxInitialDepth: number = Infinity): string => {
-  const { key, value, type, isCollapsible } = node;
+const nodeToHtml = (
+  node: JsonNode,
+  currentDepth: number = 0,
+  maxInitialDepth: number = Infinity,
+  parseFields: string = ''
+): string => {
+  const { key, value, type, isCollapsible, path } = node;
 
   // キー部分のHTML
   const keyHtml = key !== undefined
     ? `<span class="json-key">"${key}"</span>: `
+    : '';
+
+  // ネストされたJSONフィールドのクラスは対象フィールドが指定されている場合のみ適用
+  const nestedClass = (parseFields && parseFields.trim() && key)
+    ? getNestedFieldClass(path, key, parseFields)
     : '';
 
   // オブジェクトまたは配列の場合
@@ -98,14 +116,14 @@ const nodeToHtml = (node: JsonNode, currentDepth: number = 0, maxInitialDepth: n
     const collapsibleStyle = isCollapsed ? ' style="display:none;"' : '';
 
     // 子要素
-    const childrenHtml = renderChildren(value, node.path, currentDepth + 1, maxInitialDepth);
+    const childrenHtml = renderChildren(value, node.path, currentDepth + 1, maxInitialDepth, parseFields);
 
     // 折りたたみボタン付きでHTML生成
-    return `<div class="json-line"><span class="json-toggle" data-path="${node.path}">${toggleIcon}</span>${keyHtml}<span class="json-${type}">${startTag}</span><div class="json-collapsible" data-path="${node.path}"${collapsibleStyle}>${childrenHtml}</div><span class="json-${type}">${endTag}</span></div>`;
+    return `<div class="json-line ${nestedClass}"><span class="json-toggle" data-path="${path}">${toggleIcon}</span>${keyHtml}<span class="json-${type}">${startTag}</span><div class="json-collapsible" data-path="${path}"${collapsibleStyle}>${childrenHtml}</div><span class="json-${type}">${endTag}</span></div>`;
   }
 
   // プリミティブ値の場合
-  return `<div class="json-line"><span class="json-empty-toggle"></span>${keyHtml}<span class="json-${type}">${formatPrimitiveValue(value, type)}</span></div>`;
+  return `<div class="json-line ${nestedClass}"><span class="json-empty-toggle"></span>${keyHtml}<span class="json-${type}">${formatPrimitiveValue(value, type)}</span></div>`;
 };
 
 /**
@@ -114,9 +132,16 @@ const nodeToHtml = (node: JsonNode, currentDepth: number = 0, maxInitialDepth: n
  * @param parentPath 親要素のパス
  * @param currentDepth 現在の階層
  * @param maxInitialDepth 初期表示時の最大展開階層
+ * @param parseFields 文字列フィールド内のJSONをパースする対象フィールド
  * @returns HTML文字列
  */
-const renderChildren = (value: JsonValue, parentPath: string, currentDepth: number = 0, maxInitialDepth: number = Infinity): string => {
+const renderChildren = (
+  value: JsonValue,
+  parentPath: string,
+  currentDepth: number = 0,
+  maxInitialDepth: number = Infinity,
+  parseFields: string = ''
+): string => {
   if (Array.isArray(value)) {
     return value.map((item, index) => {
       const childPath = `${parentPath}.${index}`;
@@ -126,7 +151,7 @@ const renderChildren = (value: JsonValue, parentPath: string, currentDepth: numb
         type: getType(item),
         isCollapsible: isCollapsible(item),
       };
-      return nodeToHtml(childNode, currentDepth, maxInitialDepth);
+      return nodeToHtml(childNode, currentDepth, maxInitialDepth, parseFields);
     }).join('');
   }
 
@@ -142,7 +167,7 @@ const renderChildren = (value: JsonValue, parentPath: string, currentDepth: numb
         type: getType(objValue[key]),
         isCollapsible: isCollapsible(objValue[key]),
       };
-      return nodeToHtml(childNode, currentDepth, maxInitialDepth);
+      return nodeToHtml(childNode, currentDepth, maxInitialDepth, parseFields);
     }).join('');
   }
 

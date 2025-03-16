@@ -4,15 +4,19 @@ import { useState, useEffect, useCallback } from 'react';
 import JsonInput from '@/components/JsonInput';
 import JsonOutput from '@/components/JsonOutput';
 import FilterInput from '@/components/FilterInput';
+import ParserOptions from '@/components/ParserOptions';
 import ThemeToggle from '@/components/ThemeToggle';
 import { formatJson } from '@/lib/jsonFormatter';
 import { filterJson } from '@/lib/jsonFilter';
+import { parseJsonStrings } from '@/lib/jsonStringParser';
 
 export default function Home() {
   const [jsonInput, setJsonInput] = useState<string>('');
   const [filter, setFilter] = useState<string>('');
   const [formattedJson, setFormattedJson] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [autoParseJson, setAutoParseJson] = useState<boolean>(false);
+  const [parseFields, setParseFields] = useState<string>('message,data,content');
 
   // useCallbackを使用してprocessJson関数をメモ化
   const processJson = useCallback(() => {
@@ -26,6 +30,11 @@ export default function Home() {
 
       // JSON文字列をパース
       let parsedJson = JSON.parse(jsonInput);
+
+      // 自動パースが有効な場合のみ、文字列フィールド内のJSONをパース
+      if (autoParseJson && parseFields.trim()) {
+        parsedJson = parseJsonStrings(parsedJson, parseFields);
+      }
 
       // フィルタが指定されている場合は適用
       if (filter.trim()) {
@@ -42,7 +51,7 @@ export default function Home() {
     } catch (parseError) {
       setError(`JSONパースエラー: ${(parseError as Error).message}`);
     }
-  }, [jsonInput, filter]);
+  }, [jsonInput, filter, autoParseJson, parseFields]);
 
   // JSON入力またはフィルタが変更されたときに自動的に処理を実行
   useEffect(() => {
@@ -62,10 +71,19 @@ export default function Home() {
       </div>
 
       <div className="w-full max-w-6xl space-y-4">
-        <FilterInput
-          value={filter}
-          onChange={(value) => setFilter(value)}
-        />
+        <div className="flex flex-col space-y-4">
+          <FilterInput
+            value={filter}
+            onChange={(value) => setFilter(value)}
+          />
+
+          <ParserOptions
+            autoParseJson={autoParseJson}
+            setAutoParseJson={setAutoParseJson}
+            parseFields={parseFields}
+            setParseFields={setParseFields}
+          />
+        </div>
 
         <div className="flex flex-col md:flex-row gap-4">
           <div className="w-full md:w-1/2">
@@ -76,12 +94,16 @@ export default function Home() {
           </div>
 
           <div className="w-full md:w-1/2">
-            <JsonOutput formattedJson={formattedJson} />
+            <JsonOutput
+              formattedJson={formattedJson}
+              parseFields={autoParseJson ? parseFields : ''}
+            />
           </div>
         </div>
 
         {error && (
-          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded dark:bg-red-900 dark:border-red-800 dark:text-red-300">
+          <div
+            className="p-3 bg-red-100 border border-red-400 text-red-700 rounded dark:bg-red-900 dark:border-red-800 dark:text-red-300">
             {error}
           </div>
         )}

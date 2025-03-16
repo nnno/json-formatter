@@ -5,9 +5,10 @@ import { formatJsonToHtml } from '@/lib/jsonOutputFormatter';
 
 interface JsonOutputProps {
   formattedJson: string;
+  parseFields?: string;
 }
 
-export default function JsonOutput({ formattedJson }: JsonOutputProps) {
+export default function JsonOutput({ formattedJson, parseFields = '' }: JsonOutputProps) {
   const outputRef = useRef<HTMLDivElement>(null);
   const [expandDepth, setExpandDepth] = useState<number>(3);
 
@@ -18,7 +19,7 @@ export default function JsonOutput({ formattedJson }: JsonOutputProps) {
       // JSON文字列をオブジェクトとしてパースする
       const jsonObj = JSON.parse(formattedJson);
       // HTMLにフォーマットして表示（指定した深さまで展開）
-      outputRef.current.innerHTML = formatJsonToHtml(jsonObj, expandDepth);
+      outputRef.current.innerHTML = formatJsonToHtml(jsonObj, expandDepth, parseFields);
 
       // 折りたたみトグルのイベントリスナーを設定
       const toggleElements = outputRef.current.querySelectorAll('.json-toggle');
@@ -40,7 +41,7 @@ export default function JsonOutput({ formattedJson }: JsonOutputProps) {
       console.error('JSONパース中のエラー:', err);
       outputRef.current.textContent = formattedJson || '結果がここに表示されます';
     }
-  }, [formattedJson, expandDepth]);
+  }, [formattedJson, expandDepth, parseFields]);
 
   const copyToClipboard = async () => {
     try {

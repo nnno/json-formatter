@@ -189,3 +189,30 @@ button.hover\:bg-gray-100:hover {
   background-color: #3b82f6;
   color: white;
 }
+
+/* ネストされたJSONフィールドのスタイル */
+.nested-json-field {
+  position: relative;
+  background-color: rgba(144, 202, 249, 0.1);
+  border-radius: 4px;
+  margin-bottom: 2px;
+}
+
+.nested-json-field::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: #42a5f5;
+  border-radius: 3px;
+}
+
+.dark .nested-json-field {
+  background-color: rgba(144, 202, 249, 0.05);
+}
+
+.dark .nested-json-field::before {
+  background-color: #1976d2;
+}
