@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* JSON構文ハイライトのスタイル */
+.string { color: #008000; }
+.number { color: #0000ff; }
+.boolean { color: #b22222; }
+.null { color: #808080; }
+.key { color: #a52a2a; }
+
+.json-tree {
+  font-family: monospace;
+  line-height: 1.2;
+  font-size: 0.875rem;
+}
+
+.json-line {
+  position: relative;
+  margin-left: 0.75rem;
+  border-left: 1px dashed #ccc;
+  padding-left: 0.5rem;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.json-key {
+  color: #a52a2a;
+  font-weight: bold;
+}
+
+.json-string {
+  color: #008000;
+}
+
+.json-number {
+  color: #0000ff;
+}
+
+.json-boolean {
+  color: #b22222;
+}
+
+.json-null {
+  color: #808080;
+  font-style: italic;
+}
+
+.json-object, .json-array {
+  color: #000000;
+  font-weight: bold;
+}
+
+.json-toggle, .json-empty-toggle {
+  position: absolute;
+  left: -0.75rem;
+  width: 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  color: #666;
+  font-size: 0.75rem;
+}
+
+.json-empty-toggle {
+  cursor: default;
+  opacity: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .json-key {
+    color: #cf6a4c;
+  }
+
+  .json-string {
+    color: #8f9d6a;
+  }
+
+  .json-number {
+    color: #7587a6;
+  }
+
+  .json-boolean {
+    color: #cf6a4c;
+  }
+
+  .json-null {
+    color: #aaa;
+  }
+
+  .json-object, .json-array {
+    color: #ccc;
+  }
+
+  .json-toggle {
+    color: #999;
+  }
+
+  .json-toggle:hover {
+    color: #fff;
+  }
+
+  .json-line {
+    border-left-color: #444;
+  }
+}
