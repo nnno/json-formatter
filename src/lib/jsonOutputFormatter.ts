@@ -1,10 +1,20 @@
 /**
+ * JSON値の型定義
+ */
+type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: JsonValue }
+  | JsonValue[];
+
+/**
  * JSONをHTML形式でシンタックスハイライトして表示するためのフォーマッタ
  */
-
 interface JsonNode {
   key?: string;
-  value: any;
+  value: JsonValue;
   path: string;
   type: string;
   isCollapsible: boolean;
@@ -17,7 +27,7 @@ interface JsonNode {
  * @param maxInitialDepth 初期表示時の最大展開階層 (デフォルト: 1)
  * @returns HTML文字列
  */
-export const formatJsonToHtml = (json: any, maxInitialDepth: number = 1): string => {
+export const formatJsonToHtml = (json: JsonValue, maxInitialDepth: number = 1): string => {
   try {
     // 初期ノードを生成
     const rootNode: JsonNode = {
@@ -41,7 +51,7 @@ export const formatJsonToHtml = (json: any, maxInitialDepth: number = 1): string
  * @param value 任意の値
  * @returns 型名
  */
-const getType = (value: any): string => {
+const getType = (value: JsonValue): string => {
   if (value === null) return 'null';
   if (Array.isArray(value)) return 'array';
   return typeof value;
@@ -52,11 +62,11 @@ const getType = (value: any): string => {
  * @param value 任意の値
  * @returns 折りたたみ可能かどうか
  */
-const isCollapsible = (value: any): boolean => {
+const isCollapsible = (value: JsonValue): boolean => {
   return (
     typeof value === 'object' &&
     value !== null &&
-    Object.keys(value).length > 0
+    (Array.isArray(value) ? value.length > 0 : Object.keys(value).length > 0)
   );
 };
 
@@ -106,7 +116,7 @@ const nodeToHtml = (node: JsonNode, currentDepth: number = 0, maxInitialDepth: n
  * @param maxInitialDepth 初期表示時の最大展開階層
  * @returns HTML文字列
  */
-const renderChildren = (value: any, parentPath: string, currentDepth: number = 0, maxInitialDepth: number = Infinity): string => {
+const renderChildren = (value: JsonValue, parentPath: string, currentDepth: number = 0, maxInitialDepth: number = Infinity): string => {
   if (Array.isArray(value)) {
     return value.map((item, index) => {
       const childPath = `${parentPath}.${index}`;
@@ -120,17 +130,23 @@ const renderChildren = (value: any, parentPath: string, currentDepth: number = 0
     }).join('');
   }
 
-  return Object.keys(value).map(key => {
-    const childPath = `${parentPath}.${key}`;
-    const childNode: JsonNode = {
-      key,
-      value: value[key],
-      path: childPath,
-      type: getType(value[key]),
-      isCollapsible: isCollapsible(value[key]),
-    };
-    return nodeToHtml(childNode, currentDepth, maxInitialDepth);
-  }).join('');
+  // オブジェクトの場合
+  if (typeof value === 'object' && value !== null) {
+    return Object.keys(value).map(key => {
+      const objValue = value as Record<string, JsonValue>;
+      const childPath = `${parentPath}.${key}`;
+      const childNode: JsonNode = {
+        key,
+        value: objValue[key],
+        path: childPath,
+        type: getType(objValue[key]),
+        isCollapsible: isCollapsible(objValue[key]),
+      };
+      return nodeToHtml(childNode, currentDepth, maxInitialDepth);
+    }).join('');
+  }
+
+  return '';
 };
 
 /**
@@ -139,10 +155,10 @@ const renderChildren = (value: any, parentPath: string, currentDepth: number = 0
  * @param type 型名
  * @returns フォーマット済み文字列
  */
-const formatPrimitiveValue = (value: any, type: string): string => {
+const formatPrimitiveValue = (value: JsonValue, type: string): string => {
   switch (type) {
     case 'string':
-      return `"${escapeHtml(value)}"`;
+      return `"${escapeHtml(value as string)}"`;
     case 'null':
       return 'null';
     default:

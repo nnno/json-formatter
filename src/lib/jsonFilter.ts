@@ -1,4 +1,21 @@
 /**
+ * JSON値の型定義
+ */
+type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonObject
+  | JsonArray;
+
+interface JsonObject {
+  [key: string]: JsonValue;
+}
+
+type JsonArray = JsonValue[];
+
+/**
  * 拡張されたjq風フィルタを使用してJSONオブジェクトをフィルタリングする
  * サポートする構文:
  * - .property - オブジェクトのプロパティにアクセス
@@ -11,7 +28,7 @@
  * @param filter フィルタ文字列 (例: .items[0] または .user.name)
  * @returns フィルタリングされたJSONオブジェクト
  */
-export const filterJson = (json: any, filter: string): any => {
+export const filterJson = (json: JsonValue, filter: string): JsonValue => {
   // フィルタが空の場合は元のオブジェクトを返す
   if (!filter || filter.trim() === '') {
     return json;
@@ -40,7 +57,7 @@ export const filterJson = (json: any, filter: string): any => {
  * @param filterPath フィルタパス
  * @returns 抽出されたデータ
  */
-const applyFilter = (json: any, filterPath: string): any => {
+const applyFilter = (json: JsonValue, filterPath: string): JsonValue => {
   // フィルタパスがない場合は元のオブジェクトを返す
   if (!filterPath) {
     return json;
@@ -61,26 +78,35 @@ const applyFilter = (json: any, filterPath: string): any => {
   // ネストされたプロパティのパターン (例: user.name)
   const nestedPropertyPattern = /^([^.]+)\.(.*)$/;
 
+  // JSONオブジェクトでない場合
+  if (typeof json !== 'object' || json === null) {
+    throw new Error('オブジェクトまたは配列でないプロパティにはフィルタを適用できません');
+  }
+
   // 配列インデックスパターンにマッチする場合
   const arrayMatch = filterPath.match(arrayIndexPattern);
   if (arrayMatch) {
     const [, property, indexStr, remaining] = arrayMatch;
     const index = parseInt(indexStr, 10);
 
-    if (!json[property]) {
+    const jsonObj = json as JsonObject;
+    if (!jsonObj[property]) {
       throw new Error(`プロパティが見つかりません: ${property}`);
     }
 
-    if (!Array.isArray(json[property])) {
+    const propValue = jsonObj[property];
+    if (!Array.isArray(propValue)) {
       throw new Error(`プロパティは配列ではありません: ${property}`);
     }
 
-    if (index < 0 || index >= json[property].length) {
+    if (index < 0 || index >= propValue.length) {
       throw new Error(`インデックスが範囲外です: ${index}`);
     }
 
     // 残りのパスを適用
-    return remaining ? applyFilter(json[property][index], remaining.startsWith('.') ? remaining.substring(1) : remaining) : json[property][index];
+    return remaining
+      ? applyFilter(propValue[index], remaining.startsWith('.') ? remaining.substring(1) : remaining)
+      : propValue[index];
   }
 
   // 配列のすべての要素パターンにマッチする場合
@@ -88,21 +114,23 @@ const applyFilter = (json: any, filterPath: string): any => {
   if (arrayAllMatch) {
     const [, property, remaining] = arrayAllMatch;
 
-    if (!json[property]) {
+    const jsonObj = json as JsonObject;
+    if (!jsonObj[property]) {
       throw new Error(`プロパティが見つかりません: ${property}`);
     }
 
-    if (!Array.isArray(json[property])) {
+    const propValue = jsonObj[property];
+    if (!Array.isArray(propValue)) {
       throw new Error(`プロパティは配列ではありません: ${property}`);
     }
 
     // 残りのパスがある場合は各要素に適用、なければ配列全体を返す
     if (remaining) {
       const nextFilter = remaining.startsWith('.') ? remaining.substring(1) : remaining;
-      return json[property].map((item: any) => applyFilter(item, nextFilter));
+      return propValue.map((item: JsonValue) => applyFilter(item, nextFilter));
     }
 
-    return json[property];
+    return propValue;
   }
 
   // ネストされたプロパティパターンにマッチする場合
@@ -110,18 +138,20 @@ const applyFilter = (json: any, filterPath: string): any => {
   if (nestedMatch) {
     const [, property, remaining] = nestedMatch;
 
-    if (json[property] === undefined) {
+    const jsonObj = json as JsonObject;
+    if (jsonObj[property] === undefined) {
       throw new Error(`プロパティが見つかりません: ${property}`);
     }
 
     // 残りのパスを適用
-    return applyFilter(json[property], remaining);
+    return applyFilter(jsonObj[property], remaining);
   }
 
   // 単一のプロパティの場合
-  if (json[filterPath] === undefined) {
+  const jsonObj = json as JsonObject;
+  if (jsonObj[filterPath] === undefined) {
     throw new Error(`プロパティが見つかりません: ${filterPath}`);
   }
 
-  return json[filterPath];
+  return jsonObj[filterPath];
 };

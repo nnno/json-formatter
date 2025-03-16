@@ -35,7 +35,7 @@ export default function JsonInput({ value, onChange }: JsonInputProps) {
         // JSONとして解析できるか確認
         JSON.parse(content);
         onChange(content);
-      } catch (error) {
+      } catch {
         alert('有効なJSONファイルではありません');
       }
     };

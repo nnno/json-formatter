@@ -4,7 +4,7 @@
  * @param indent インデントレベル (オプション、デフォルト: 2)
  * @returns 整形されたJSON文字列
  */
-export const formatJson = (json: any, indent: number = 2): string => {
+export const formatJson = (json: unknown, indent: number = 2): string => {
   try {
     return JSON.stringify(json, null, indent);
   } catch (error) {

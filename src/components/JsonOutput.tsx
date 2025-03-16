@@ -51,11 +51,6 @@ export default function JsonOutput({ formattedJson }: JsonOutputProps) {
     }
   };
 
-  // 全て展開
-  const expandAll = () => {
-    handleDepthChange(99);
-  };
-
   // 全て折りたたむ
   const collapseAll = () => {
     if (!outputRef.current) return;
