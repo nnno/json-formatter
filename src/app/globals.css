@@ -3,6 +3,10 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card-bg: #f9f9f9;
+  --border-color: #e5e5e5;
+  --input-bg: #ffffff;
+  --button-hover: #f3f4f6;
 }
 
 @theme inline {
@@ -12,17 +16,28 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #121212;
+  --foreground: #e0e0e0;
+  --card-bg: #2d2d2d;
+  --border-color: #444;
+  --input-bg: #2d2d2d;
+  --button-hover: #444;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* テーマ初期化スクリプト */
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 /* JSON構文ハイライトのスタイル */
@@ -32,6 +47,7 @@ body {
 .null { color: #808080; }
 .key { color: #a52a2a; }
 
+/* JSONツリー表示のスタイル */
 .json-tree {
   font-family: monospace;
   line-height: 1.2;
@@ -41,7 +57,7 @@ body {
 .json-line {
   position: relative;
   margin-left: 0.75rem;
-  border-left: 1px dashed #ccc;
+  border-left: 1px dashed var(--border-color);
   padding-left: 0.5rem;
   margin-top: 0;
   margin-bottom: 0;
@@ -90,40 +106,86 @@ body {
   opacity: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  .json-key {
-    color: #cf6a4c;
-  }
+#json-input, textarea, input[type="text"] {
+  background-color: var(--input-bg);
+  color: var(--foreground);
+  border-color: var(--border-color);
+}
 
-  .json-string {
-    color: #8f9d6a;
-  }
+#json-output {
+  background-color: var(--card-bg);
+  color: var(--foreground);
+  border-color: var(--border-color);
+}
 
-  .json-number {
-    color: #7587a6;
-  }
+button.hover\:bg-gray-100:hover {
+  background-color: var(--button-hover);
+}
 
-  .json-boolean {
-    color: #cf6a4c;
-  }
+/* ダークモード対応 */
+.dark .json-key {
+  color: #ff9580;
+}
 
-  .json-null {
-    color: #aaa;
-  }
+.dark .json-string {
+  color: #a5d6a7;
+}
 
-  .json-object, .json-array {
-    color: #ccc;
-  }
+.dark .json-number {
+  color: #90caf9;
+}
 
-  .json-toggle {
-    color: #999;
-  }
+.dark .json-boolean {
+  color: #ffab91;
+}
 
-  .json-toggle:hover {
-    color: #fff;
-  }
+.dark .json-null {
+  color: #b0bec5;
+}
 
-  .json-line {
-    border-left-color: #444;
-  }
+.dark .json-object, .dark .json-array {
+  color: #e0e0e0;
+}
+
+.dark .json-toggle {
+  color: #bbb;
+}
+
+.dark .json-toggle:hover {
+  color: #fff;
+}
+
+/* テーマ切り替えボタンのスタイル */
+.theme-toggle {
+  padding: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--foreground);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background-color: var(--button-hover);
+}
+
+.dark button {
+  background-color: #3a3a3a;
+  color: #e0e0e0;
+  border-color: #555;
+}
+
+.dark button:hover {
+  background-color: #4a4a4a;
+}
+
+.dark button.bg-blue-500 {
+  background-color: #3b82f6;
+  color: white;
 }

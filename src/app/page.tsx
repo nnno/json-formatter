@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import JsonInput from '@/components/JsonInput';
 import JsonOutput from '@/components/JsonOutput';
 import FilterInput from '@/components/FilterInput';
+import ThemeToggle from '@/components/ThemeToggle';
 import { formatJson } from '@/lib/jsonFormatter';
 import { filterJson } from '@/lib/jsonFilter';
 
@@ -55,7 +56,10 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center p-8">
-      <h1 className="text-3xl font-bold mb-6">JSON フォーマッタ</h1>
+      <div className="flex items-center justify-between w-full max-w-6xl mb-6">
+        <h1 className="text-3xl font-bold">JSON フォーマッタ</h1>
+        <ThemeToggle />
+      </div>
 
       <div className="w-full max-w-6xl space-y-4">
         <FilterInput
@@ -77,7 +81,7 @@ export default function Home() {
         </div>
 
         {error && (
-          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded dark:bg-red-900 dark:border-red-800 dark:text-red-300">
             {error}
           </div>
         )}
